@@ -58,6 +58,13 @@ class Window:
     def add_loop_phase(self, lphase: Callable):
         self.loop_phases.append(lphase)
     
+    @dispatch(...)
+    def blit(self, any: Any, *args, **kwargs):
+        try: 
+            any.__blit__(*args, **kwargs)
+        except AttributeError as e: 
+            print(e)
+
     @dispatch(pg.Surface, object)
     def blit(self, surface: pg.Surface, pos: tuple):
         self.screen.blit(surface, pos)
