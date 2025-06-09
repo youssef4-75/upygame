@@ -1,0 +1,1 @@
+from .collection import GIF_Collection

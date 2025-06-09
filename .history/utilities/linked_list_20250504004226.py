@@ -1,0 +1,9 @@
+
+
+
+class LinkedList:
+    def __init__(self, value):
+        self.__value = value
+        self.__next = None 
+
+    def 
