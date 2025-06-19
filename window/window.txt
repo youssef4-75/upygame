@@ -1,0 +1,256 @@
+Window Class Documentation
+=======================
+
+The Window class is a powerful wrapper around pygame's display functionality that provides additional features like layer management, event handling, and drawing utilities.
+
+Basic Usage
+----------
+```python
+from upygame import Window
+
+# Create a basic window
+window = Window("My Game", 800, 600)
+
+# Game loop
+while True:
+    window.heading()  # Clear screen
+    # Your game logic here
+    window.update()  # Update display
+    window.tick(60)  # Cap at 60 FPS
+```
+
+Layer System
+-----------
+The Window class includes an optional layer system that allows you to create multiple drawing surfaces and manage them independently. This is useful for creating UI overlays, parallax effects, or separating game elements.
+
+To use layers, you must first initialize them:
+```python
+# Method 1: Initialize during window creation
+window = Window("My Game", 800, 600, with_layers=True)
+
+# Method 2: Initialize later
+window = Window("My Game", 800, 600)
+window.init_layers()
+```
+
+Layer Management Functions:
+- `add_layer(key, visible=True)`: Create a new layer with the specified key and visibility state
+- `remove_layer(key)`: Remove a layer by its key
+- `clear_layer(key)`: Clear the contents of a specific layer
+- `clear_all_layers()`: Clear all layers
+- `get_layer(key)`: Get a layer surface by its key
+- `blit_in_layer(key, *args, **kwargs)`: Blit a surface onto a specific layer, equivalent of get_layer(key).blit(*args, **kwargs)
+
+Layer Visibility Functions:
+- `set_layer_visibility(key, visible)`: Set whether a layer should be visible
+- `get_layer_visibility(key)`: Check if a layer is currently visible
+
+Example of layer usage with visibility control:
+```python
+# Create layers
+window.add_layer("background", visible=True)  # Visible by default
+window.add_layer("game", visible=True)
+window.add_layer("ui", visible=True)
+window.add_layer("debug", visible=False)  # Hidden by default
+
+# Draw to layers
+window.blit_in_layer("background", background_surface, (0, 0))
+window.blit_in_layer("game", game_surface, (0, 0))
+window.blit_in_layer("ui", ui_surface, (0, 0))
+window.blit_in_layer("debug", debug_surface, (0, 0))
+
+# Toggle layer visibility
+window.set_layer_visibility("ui", False)  # Hide UI layer
+window.set_layer_visibility("debug", True)  # Show debug layer
+
+# Check layer visibility
+if window.get_layer_visibility("ui"):
+    print("UI layer is visible")
+
+# In game loop
+window.heading()  # Clear main screen
+window.tailing(fps)  # Render only visible layers to screen and handle the clock tick
+```
+
+Key Event Handling
+----------------
+The Window class provides a convenient way to handle keyboard input:
+
+```python
+def on_space_press():
+    print("Space pressed!")
+
+def move_left():
+    print("Moving left!")
+
+# Add key listener
+window.add_key_map(pg.K_SPACE, on_space_press, once=True)  # Trigger once per press
+window.add_key_map(pg.K_LEFT, move_left, once=False)  # Trigger continuously while held
+
+# Or add many key listener at once 
+window.add_multiple_key_map(
+    (pg.K_SPACE, on_space_press, True),
+    (pg.K_LEFT, move_left)  # the last parameter is defaulted to False
+)
+```
+
+The `once` parameter determines the behavior:
+- `once=True`: Function is called once when the key is pressed
+- `once=False`: Function is called continuously while the key is held
+
+Drawing Functions
+---------------
+The Window class provides several methods for drawing:
+
+1. Basic Blitting:
+```python
+window.blit(surface, position)  # Blit any surface
+```
+
+2. Animation Support:
+```python
+window.blit(animation_set, position, state="idle")  # Blit animation frame
+```
+
+3. Board Drawing:
+```python
+window.blit(board, limits=True, color=(0,0,0), line_width=2, overflow=True)
+```
+
+Game Loop Management
+-----------------
+The Window class helps manage the game loop through several methods:
+
+1. `heading()`: Clear the screen (usually called at the start of each frame)
+2. `tailing(fps)`: Render layers and update display (usually called at the end of each frame)
+
+
+Example game loop:
+```python
+while True:
+    window.heading()
+    # Your game logic here
+    window.tailing(60)
+```
+
+Loop Phases
+----------
+You can add custom functions to be executed in the game loop:
+
+```python
+def update_game():
+    # Update game state
+    pass
+
+def render_game():
+    # Render game elements
+    pass
+
+# Add phases during initialization
+window = Window("My Game", 800, 600, update_game, render_game)
+
+# Or add phases later
+window.add_loop_phase(update_game)
+window.add_loop_phase(render_game)
+```
+
+Error Handling
+------------
+The Window class includes proper error handling for layer operations:
+
+1. Layer Initialization:
+- Attempting to use layers without initialization will raise a RuntimeError
+- The error message will guide you to call `init_layers()` or set `with_layers=True`
+
+2. Layer Operations:
+- Attempting to access non-existent layers will raise a KeyError
+- All layer operations check for proper initialization
+
+Best Practices
+------------
+1. Always initialize layers if you plan to use them
+2. Use meaningful keys for layers (e.g., "background", "game", "ui")
+3. Clear layers when they're no longer needed
+4. Use the `tailing(fps)` method to render all layers at once
+5. Keep your game loop organized using loop phases
+6. Use the key mapping system for input handling
+7. Maintain a consistent frame rate using `tailing(fps)`
+8. Use layer visibility to manage UI states and transitions
+9. Hide layers that aren't currently needed to improve performance
+
+Common Patterns
+-------------
+1. Parallax Scrolling:
+```python
+window.add_layer("far_background")
+window.add_layer("mid_background")
+window.add_layer("foreground")
+
+# In game loop
+window.blit_in_layer("far_background", far_bg, (scroll_x * 0.5, 0))
+window.blit_in_layer("mid_background", mid_bg, (scroll_x * 0.8, 0))
+window.blit_in_layer("foreground", fg, (scroll_x, 0))
+```
+
+2. UI Overlay with Visibility Control:
+```python
+window.add_layer("game")
+window.add_layer("ui")
+window.add_layer("menu", visible=False)  # Hidden by default
+
+# Game elements on game layer
+window.blit_in_layer("game", game_surface, (0, 0))
+
+# UI elements on ui layer
+window.blit_in_layer("ui", health_bar, (10, 10))
+window.blit_in_layer("ui", score_text, (10, 50))
+
+# Menu elements on menu layer
+window.blit_in_layer("menu", menu_surface, (0, 0))
+
+# Toggle menu visibility
+def toggle_menu():
+    if window.is_layer_visible("menu"):
+        window.hide_layer("menu")
+    else:
+        window.show_layer("menu")
+```
+
+3. Debug Layer:
+```python
+window.add_layer("game")
+window.add_layer("debug", visible=False)  # Hidden by default
+
+# Game elements
+window.blit_in_layer("game", game_surface, (0, 0))
+
+# Debug information
+window.blit_in_layer("debug", debug_surface, (0, 0))
+
+# Toggle debug view with F3
+window.add_key_map(pg.K_F3, lambda: window.set_layer_visibility("debug", not window.is_layer_visible("debug")))
+```
+
+4. Layer Transitions:
+```python
+window.add_layer("game")
+window.add_layer("fade", visible=False)
+
+# Create a fade effect
+fade_surface = pg.Surface((window.width, window.height))
+fade_surface.fill((0, 0, 0))
+
+def fade_out():
+    window.show_layer("fade")
+    for alpha in range(0, 255, 5):
+        fade_surface.set_alpha(alpha)
+        window.blit_in_layer("fade", fade_surface, (0, 0))
+        window.tailing(60)
+
+def fade_in():
+    for alpha in range(255, 0, -5):
+        fade_surface.set_alpha(alpha)
+        window.blit_in_layer("fade", fade_surface, (0, 0))
+        window.tailing(60)
+    window.hide_layer("fade")
+```

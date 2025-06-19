@@ -1,3 +1,10 @@
+"""
+Phase module for managing game phases and event-driven logic.
+
+This module provides the Phase class which represents a phase in the game.
+It supports event-driven logic, conditions, and effects for flexible game flow.
+"""
+
 import pygame as pg;
 from typing import Callable, Any;
 import re;
@@ -7,6 +14,22 @@ from ..utilities.reader import read_header, read_repeatability, read_input, read
 from .exception import FinalRepException;
 
 class Phase:
+    """
+    A class to represent a phase in the game.
+    
+    This class manages conditions, effects, and repeatability for a game phase.
+    It supports event-driven logic and can be used to implement complex game flows.
+    
+    Attributes:
+        __conditions (list): List of conditions for the phase
+        __andifying (bool): Whether to use AND logic for conditions
+        __output (Callable): Effect function to execute
+        __consumption_times (int): Number of times the phase can be consumed
+        __CT (int): Initial consumption times
+        __repeatable (bool): Whether the phase is repeatable
+        __last_iteration (bool): Whether the last iteration was reached
+        __active (bool): Whether the phase is currently active
+    """
     def __init__(self, 
             conditions: list[tuple[str, str|int]], 
             output: Callable,

@@ -1,3 +1,10 @@
+"""
+Piece module for abstract game pieces on the board.
+
+This module provides the Piece abstract base class for representing game pieces.
+It defines the interface and common properties for all pieces used on a board.
+"""
+
 from abc import ABC, abstractmethod
 from pygame import Surface
 
@@ -8,6 +15,17 @@ from .var import Column_X, Row_Y
 
 
 class Piece(ABC):
+    """
+    Abstract base class for a game piece.
+    
+    This class defines the interface and common properties for all game pieces.
+    Subclasses must implement the update method.
+    
+    Attributes:
+        __pos (list): Position of the piece (row, column)
+        __side: Side or player the piece belongs to
+        image (Surface|None): Visual representation of the piece
+    """
     def __init__(self, row: int,
                 column: int,
                 image: Surface = None):

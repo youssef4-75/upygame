@@ -16,3 +16,6 @@ simulating dynamic motions by following the thermodynaics rules,
 """
 
 
+from .line import glow_line
+from .color import uColor as Color
+from .glow.main import glow

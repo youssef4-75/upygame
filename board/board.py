@@ -1,3 +1,11 @@
+"""
+Board module for managing the game board, pieces, and phases.
+
+This module provides the Board class which represents a grid-based game board.
+It manages pieces, board state, player turns, and game phases. The class is designed
+to be flexible for various board game mechanics.
+"""
+
 from typing import Callable
 import pygame as pg 
 
@@ -15,6 +23,24 @@ from .exception import FinalRepException
 
 
 class Board:
+    """
+    A class to represent a grid-based game board.
+    
+    This class manages the board's shape, pieces, player turns, and game phases.
+    It provides methods for drawing, updating, and interacting with pieces on the board.
+    
+    Attributes:
+        shape (tuple): Board dimensions (rows, columns)
+        cell_shape (tuple): Size of each cell (width, height)
+        init_pos (tuple): Initial position of the board (top, left)
+        style (Callable): Function to determine cell color/style
+        pieces (list[Piece]): List of pieces on the board
+        piece_in_focus (Piece|None): Currently selected piece
+        sides (list): List of player sides
+        turn: Current player's turn
+        __game_phases (list[Phase]): List of game phases
+        __cp (int): Current phase index
+    """
     UP = (-1, 0)
     DOWN = (1, 0)
     RIGHT = (0, 1)

@@ -1,3 +1,12 @@
+"""
+AnimationSet module for managing multiple animations with priority-based transitions.
+
+This module provides the AnimationSet class which manages collections of animations
+with priority-based switching between different animation states. It's useful for
+complex game entities that need to handle multiple animation states (like idle,
+walking, jumping, etc.) with smooth transitions between them.
+"""
+
 from typing import Iterable
 from pygame import Surface, SRCALPHA
 from os import listdir
@@ -9,11 +18,36 @@ from .animation import Animation
 
 
 class AnimationSet:
+    """
+    A class to manage multiple animations with priority-based transitions.
+    
+    This class handles collections of animations that can be switched between based
+    on priority levels. It's particularly useful for game entities that need to
+    handle multiple animation states (idle, walking, jumping, etc.) with smooth
+    transitions between them.
+    
+    Attributes:
+        __animations (dict[int, Animation]): Dictionary mapping state keys to animations
+        __priorities (dict[int, int]): Dictionary mapping state keys to priority levels
+        __state (int): Current animation state
+        __wait (int): Next animation state to transition to
+        __frame_speed (int): Base frame speed for all animations
+        __reset (bool): Flag indicating if animation should reset
+    """
+    
     def __init__(self, animations: dict[int, Animation], 
-                priorities: dict[int, int], frame_speed) -> None:
-        # keys are numbers
-        # create priority when you make a new animation collection + 
-        # modify classmethod to be convenient 
+                priorities: dict[int, int], frame_speed: int) -> None:
+        """
+        Initialize an AnimationSet with a collection of animations.
+        
+        Args:
+            animations (dict[int, Animation]): Dictionary of animations indexed by state keys
+            priorities (dict[int, int]): Dictionary of priority levels for each state
+            frame_speed (int): Base frame speed for all animations
+            
+        Note:
+            The length of animations and priorities must match
+        """
         assert len(animations) == len(priorities)
         self.__animations = animations
         self.__priorities = priorities
@@ -30,30 +64,35 @@ class AnimationSet:
         return p + "\n>"
 
     @classmethod
-    def new(cls, anim: Surface|Iterable[Surface]|Animation, frame_speed: int):
+    def new(cls, anim: Surface|Iterable[Surface]|Animation, frame_speed: int) -> 'AnimationSet':
         """
-        create a new AnimationSet with a single animation,
-        the animation is a single frame animation, with the key 0 and the priority 1
+        Create a new AnimationSet with a single animation.
         
-        the frame speed is the speed of the animation
+        Args:
+            anim (Surface|Iterable[Surface]|Animation): The initial animation
+            frame_speed (int): Base frame speed for the animation
+            
+        Returns:
+            AnimationSet: A new AnimationSet instance with a single animation
         """
         if isinstance(anim, Surface): anim = Animation([anim])
         if isinstance(anim, Iterable): anim = Animation(anim)
         return cls({0: anim}, {0: 1}, frame_speed)
 
     @init_method
-    def add_sample_color(
-                self, 
+    def add_sample_color(self, 
                 key: int, 
                 color: tuple[int, int, int],
                 size: tuple[int, int]=(100, 100), 
                 priority: int=1) -> None:
         """
-        add to the animation set a new animation that is a
-            simple rect of size {size} with the color 
-            {color} and priority {priority}
-
-        stored with the key {key}
+        Add a solid color animation to the set.
+        
+        Args:
+            key (int): State key for the new animation
+            color (tuple[int, int, int]): RGB color values
+            size (tuple[int, int], optional): Size of the color surface. Defaults to (100, 100)
+            priority (int, optional): Priority level. Defaults to 1
         """
         transparent_surface = Surface(size, SRCALPHA)
         transparent_surface.fill(color)
@@ -63,10 +102,14 @@ class AnimationSet:
     def add(self,
             key: int, 
             animation: Animation|Iterable[Surface], 
-            priority: int):
+            priority: int) -> None:
         """
-        add an animation to the collection, if the key is already 
-        in the collection, add the given frames to the previous one
+        Add an animation to the set or append frames to an existing animation.
+        
+        Args:
+            key (int): State key for the animation
+            animation (Animation|Iterable[Surface]): Animation to add
+            priority (int): Priority level for the animation
         """
         if key in self.__animations:
             if isinstance(animation, Animation): 
@@ -108,19 +151,27 @@ class AnimationSet:
         return cls(animation, priorities, frame_speed)
 
     @property
-    def get_animation(self):
+    def get_animation(self) -> Animation | None:
         """
-        return the current animation, if still not initialised, return None
+        Get the current animation.
+        
+        Returns:
+            Animation | None: The current animation or None if not initialized
         """
         if self.__state is None: return None
         try:return self.__animations[self.__state]
         except KeyError:
             return None
     
-    def get_priority(self, index=None):
+    def get_priority(self, index: int = None) -> int | None:
         """
-        return the index associated animations' priority,
-        return the current animation's priority if no index is given
+        Get the priority level for an animation state.
+        
+        Args:
+            index (int, optional): State key to get priority for. Defaults to current state
+            
+        Returns:
+            int | None: Priority level or None if state doesn't exist
         """
         if index is None: index = self.__state
         try:return self.__priorities[index]
@@ -141,13 +192,17 @@ class AnimationSet:
         return self.get_priority(anim_index1) <= self.get_priority(anim_index2)
 
     @loop_method
-    def generate(self, state=None, start=None, repeat=None):
+    def generate(self, state: int = None, start: int = None, repeat: int = None) -> Surface | None:
         """
-        decide the next surface to plot following these rules: 
-            if the current animation have a priority higher than the priority of the 
-                    suggested one, it wait until the end of the current animation
-            otherwise, it is switched
-            if state is None: return the next frame of the current animation
+        Generate the next frame based on current state and priorities.
+        
+        Args:
+            state (int, optional): Suggested next state
+            start (int, optional): Starting frame for current animation
+            repeat (int, optional): End frame for current animation
+            
+        Returns:
+            Surface | None: Next frame to display or None if no animation available
         """
         
         if state is None or state not in self.__animations:

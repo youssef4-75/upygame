@@ -12,6 +12,9 @@ from multipledispatch import dispatch
 class uColor(Color):
     @dispatch(...)
     def __init__(self, R=255, G=255, B=255, A=255, *, p=1) -> None:
+        R, B, G, A = map(
+                lambda X: max(0, min(255, X)), 
+                [R, B, G, A])
         super().__init__(R, G, B, A)
         # print(self.__init__.funcs.keys())     
         self.__p = p
